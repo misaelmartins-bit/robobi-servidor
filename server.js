@@ -12,8 +12,7 @@ app.use(express.json());
 // 1. AJUSTE: Servir a pasta public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Substitua o seu app.get('*', ...) por este:
-app.get('/:any*', (req, res, next) => {
+app.get('/:any(*)', (req, res, next) => {
   if (req.path.startsWith('/dados')) return next(); 
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

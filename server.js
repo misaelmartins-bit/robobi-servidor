@@ -12,10 +12,9 @@ app.use(express.json());
 // 1. AJUSTE: Servir a pasta public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 2. AJUSTE: Rota curinga para garantir que o index.html seja entregue
-// Isso resolve o erro de "MIME type" caso o navegador se perca nas rotas
-app.get('/:catchall*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/dados')) return next(); // Deixa a rota do ESP32 passar
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.post('/dados', (req, res) => {

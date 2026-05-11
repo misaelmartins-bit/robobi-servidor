@@ -9,12 +9,20 @@ const io = socketIo(server);
 
 app.use(express.json());
 
-// 1. AJUSTE: Servir a pasta public
+// 1. Serve os arquivos estáticos normalmente
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/:any(*)', (req, res, next) => {
-  if (req.path.startsWith('/dados')) return next(); 
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// 2. Rota do ESP32 (Mantenha como está)
+app.post('/dados', (req, res) => {
+    const dadosRecebidos = req.body;
+    io.emit('atualizarDados', dadosRecebidos);
+    res.status(200).send("Dados recebidos!");
+});
+
+// 3. SOLUÇÃO FINAL: Middleware para qualquer outra rota
+// Isso evita o erro de Path-to-RegExp por não usar '*' ou '()'
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.post('/dados', (req, res) => {

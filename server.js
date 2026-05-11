@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // 2. AJUSTE: Rota curinga para garantir que o index.html seja entregue
 // Isso resolve o erro de "MIME type" caso o navegador se perca nas rotas
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

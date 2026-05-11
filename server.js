@@ -7,26 +7,26 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Middleware para entender JSON enviado pelo ESP32
 app.use(express.json());
 
-// Servir arquivos estáticos (HTML, CSS, JS) da pasta public
+// 1. AJUSTE: Servir a pasta public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ROTA QUE O ESP32 VAI ACESSAR (POST)
+// 2. AJUSTE: Rota curinga para garantir que o index.html seja entregue
+// Isso resolve o erro de "MIME type" caso o navegador se perca nas rotas
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.post('/dados', (req, res) => {
     const dadosRecebidos = req.body;
-    
     console.log("Dados do ESP32:", dadosRecebidos);
-
-    // Envia os dados imediatamente para todos os navegadores abertos via Socket.io
     io.emit('atualizarDados', dadosRecebidos);
-
     res.status(200).send("Dados recebidos com sucesso!");
 });
 
-// Iniciar o servidor na porta da Umbler ou na 3000 localmente
+// 3. AJUSTE: Porta do Render (Geralmente 10000, mas o process.env resolve)
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });

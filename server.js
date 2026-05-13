@@ -10,7 +10,9 @@ const io = socketIo(server, {
   cors: {
     origin: "*", // Permite que o seu frontend (site) se conecte sem bloqueios
     methods: ["GET", "POST"]
-  }
+  },
+  allowEIO3: true, // Compatibilidade extra
+  transports: ['websocket', 'polling'] // Tenta WebSocket primeiro, se falhar usa polling
 });
 
 app.use(express.json());

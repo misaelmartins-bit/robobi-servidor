@@ -5,19 +5,19 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-// SUBSTITUA A LINHA ANTIGA POR ESTA AQUI:
+
 const io = socketIo(server, {
   cors: {
-    origin: "*", // Permite que o seu frontend (site) se conecte sem bloqueios
+    origin: "*", 
     methods: ["GET", "POST"]
   },
-  allowEIO3: true, // Compatibilidade extra
-  transports: ['websocket', 'polling'] // Tenta WebSocket primeiro, se falhar usa polling
+  allowEIO3: true, 
+  transports: ['websocket', 'polling'] 
 });
 
 app.use(express.json());
 
-// 1. Serve os arquivos estáticos (CSS, JS do build, Imagens)
+// 1. Serve os arquivos estáticos primeiro (Garante o carregamento do JS, CSS, Imagens)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 2. Rota para receber dados do ESP32 (Fumaça, Calor, etc.)
@@ -25,14 +25,18 @@ app.post('/dados', (req, res) => {
     const dadosRecebidos = req.body;
     console.log("Dados do ESP32:", dadosRecebidos);
     
-    // Agora o io.emit vai enviar para o front em tempo real
-    io.emit('atualizarDados', dadosRecebidos); 
+    // Envia para o front em tempo real via Socket
+    io.emit('dados', dadosRecebidos);
     
     res.status(200).send("Dados recebidos com sucesso!");
 });
-// 3. Rota Curinga (Middleware) - DEVE SER A ÚLTIMA
-// Isso garante que o React Router funcione sem erros de MIME type
-app.use((req, res) => {
+
+// 3. SOLUÇÃO COMPATÍVEL: Middleware curinga seguro para o Express 5
+// Se não for a rota '/dados' e não for um arquivo estático, entrega o index.html pro React Router
+app.use((req, res, next) => {
+    if (req.url === '/dados') {
+        return next();
+    }
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

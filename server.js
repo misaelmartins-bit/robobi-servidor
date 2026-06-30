@@ -15,6 +15,7 @@ const io = socketIo(server, {
   transports: ['websocket', 'polling'] 
 });
 
+// Essencial para converter o JSON que vem do ESP32 em um objeto JavaScript
 app.use(express.json());
 
 // 1. Serve os arquivos estáticos primeiro (Garante o carregamento do JS, CSS, Imagens)
@@ -23,7 +24,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 2. Rota para receber dados do ESP32 (Fumaça, Calor, etc.)
 app.post('/dados', (req, res) => {
     const dadosRecebidos = req.body;
-    console.log("Dados do ESP32:", dadosRecebidos);
+    
+    // Proteção: Verifica se o ESP32 mandou um JSON válido
+    if (!dadosRecebidos || Object.keys(dadosRecebidos).length === 0) {
+        console.log("⚠️ Aviso: Requisição recebida, mas sem dados JSON.");
+        return res.status(400).send("Nenhum dado recebido.");
+    }
+
+    console.log("🔥 Dados recebidos do ESP32:", dadosRecebidos);
     
     // Envia para o front em tempo real via Socket
     io.emit('dados', dadosRecebidos);
@@ -31,16 +39,13 @@ app.post('/dados', (req, res) => {
     res.status(200).send("Dados recebidos com sucesso!");
 });
 
-// 3. SOLUÇÃO COMPATÍVEL: Middleware curinga seguro para o Express 5
-// Se não for a rota '/dados' e não for um arquivo estático, entrega o index.html pro React Router
-app.use((req, res, next) => {
-    if (req.url === '/dados') {
-        return next();
-    }
+// 3. Rota Fallback para o React Router (Substitui o app.use curinga)
+// Tudo que for requisição GET e não achar arquivo estático, devolve o index.html
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`🚀 Servidor rodando perfeitamente na porta ${PORT}`);
 });

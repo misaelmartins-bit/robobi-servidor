@@ -39,10 +39,15 @@ app.post('/dados', (req, res) => {
     res.status(200).send("Dados recebidos com sucesso!");
 });
 
-// 3. Rota Fallback para o React Router (Substitui o app.use curinga)
-// Tudo que for requisição GET e não achar arquivo estático, devolve o index.html
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// 3. Rota Fallback para o React Router (COMPATÍVEL COM EXPRESS 5)
+// Substitui o app.get('*') por um middleware seguro.
+// Tudo que não foi pego nas rotas acima cai aqui. Se for GET, envia o React.
+app.use((req, res, next) => {
+    if (req.method === 'GET') {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } else {
+        res.status(404).send("Rota não encontrada");
+    }
 });
 
 const PORT = process.env.PORT || 3000;

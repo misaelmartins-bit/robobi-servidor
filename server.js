@@ -38,11 +38,11 @@ app.post('/dados', (req, res) => {
     
     // Resposta rápida para o ESP32 liberar a conexão
     res.status(200).send("Dados recebidos com sucesso!");
-}); // <--- Aqui estava faltando fechar corretamente antes de iniciar a próxima linha!
+});
 
-// 3. Rota Fallback para o React Router (Forma padrão e segura para Express 5)
-// Colocado explicitamente como GET '*' para evitar interceptar arquivos estáticos
-app.get('*', (req, res) => {
+// 3. Rota Fallback para o React Router (CORREÇÃO PARA O EXPRESS 5)
+// Usamos a Expressão Regular /(.*)/ em vez da string '*' que causa erro no Express 5.
+app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

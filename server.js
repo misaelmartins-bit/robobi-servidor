@@ -36,18 +36,20 @@ app.post('/dados', (req, res) => {
     // Envia para o front em tempo real via Socket
     io.emit('dados', dadosRecebidos);
     
+    // Resposta rápida para o ESP32 liberar a conexão
     res.status(200).send("Dados recebidos com sucesso!");
 });
 
-// 3. Rota Fallback para o React Router (COMPATÍVEL COM EXPRESS 5)
-// Substitui o app.get('*') por um middleware seguro.
-// Tudo que não foi pego nas rotas acima cai aqui. Se for GET, envia o React.
-app.use((req, res, next) => {
-    if (req.method === 'GET') {
-        res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    } else {
-        res.status(404).send("Rota não encontrada");
-    }
+// 3. Rota Fallback para o React Router (Forma padrão e segura para Express 5)
+// Colocado explicitamente como GET '*' para evitar interceptar arquivos estáticos
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Gerenciamento básico de erro global (Boa prática para o Render não cair)
+app.use((err, req, res, next) => {
+    console.error("❌ Erro interno no servidor:", err.stack);
+    res.status(500).send('Algo deu errado!');
 });
 
 const PORT = process.env.PORT || 3000;
